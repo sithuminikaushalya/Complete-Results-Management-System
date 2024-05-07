@@ -18,6 +18,17 @@ import newLmsImage from '../../images/new lms.jpeg';
 const Home = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const images = [image1, image2, image3];
+
+    const incrementImageIndex = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    };
+
+    useEffect(() => {
+        const intervalId = setInterval(incrementImageIndex, 5000); 
+
+        return () => clearInterval(intervalId); 
+    }, []); 
+
     const departments = [
         {
             name: 'Marine',

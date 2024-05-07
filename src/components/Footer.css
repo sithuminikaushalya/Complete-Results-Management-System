@@ -21,6 +21,7 @@
 .footer-section {
   flex: 1 0 200px; 
   padding: 10px;
+  text-decoration: none;
 }
 
 .footer-section h3 {

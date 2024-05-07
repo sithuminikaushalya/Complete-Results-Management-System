@@ -7,39 +7,38 @@
 .dashboard-content {
     flex: 1;
     padding: 20px;
+    display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    margin-top: 150px;
-    padding: 20px;
 }
 
-.scrollable-section {
-    display: flex;
-    overflow-x: auto; 
-    scroll-behavior: smooth; 
-    padding: 20px 0;
+.student-table {
+    width: 100%;
+    margin-top: 20px;
+    margin-right: 10px;
+    border-collapse: collapse;
 }
 
-.module {
-    flex: 0 0 auto; 
-    width: 200px; 
-    height: 150px; 
-    margin-right: 20px; 
-    background-color: #f0f0f0;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
-    font-weight: bold;
+.student-table th,
+.student-table td {
+    border: 1px solid #dec7c7;
+    background-color: #dec7c7;
+    padding: 8px;
+    text-align: center;
+}
+
+.student-table th {
+    background-color: #dce2f2;
+}
+
+.student-table tbody tr:hover {
+    background-color: #d4e9d7;
 }
 
 @media (max-width: 600px) {
-    .module {
-        width: 150px; 
-        height: 120px; 
-        font-size: 16px; 
+    .student-table th,
+    .student-table td {
+        padding: 6px;
+        font-size: 14px;
     }
 }

@@ -24,8 +24,8 @@ const Footer = () => {
         <div className="footer-section">
           <h3>CONTACT US</h3>
           <p>Faculty of Engineering, Hapugala, Galle, Sri Lanka.</p>
-          <p>Phone: +(94) 91 2245765/6</p>
-          <p>E-mail: webmaster@eng.ruh.ac.lk</p>
+          <p>Phone: <a href="tel:+94912245765">+(94) 91 2245765/6</a></p>
+          <p>E-mail: <a href="mailto:webmaster@eng.ruh.ac.lk">webmaster@eng.ruh.ac.lk</a></p>
         </div>
         <div className="footer-section">
           <h3>GET SOCIAL</h3>
