@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 import './SignUp.css';
-import axiosInstance from '../../utils/api';
+import axios from 'axios';
 
 const SignUp = () => {
+    const navigate = useNavigate();
+
     const [userType, setUserType] = useState('student');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -20,85 +23,50 @@ const SignUp = () => {
         setUserType(e.target.value);
     };
 
-    const handleUsernameChange = (e) => {
-        setUsername(e.target.value);
+    const handleInputChange = (e, setter) => {
+        setter(e.target.value);
     };
 
-    const handlePasswordChange = (e) => {
-        setPassword(e.target.value);
-    };
-
-    const handleRegistrationNumberChange = (e) => {
-        setRegistrationNumber(e.target.value);
-    };
-
-    const handleFullNameChange = (e) => {
-        setFullName(e.target.value);
-    };
-
-    const handleBatchChange = (e) => {
-        setBatch(e.target.value);
-    };
-
-    const handleDepartmentChange = (e) => {
-        setDepartment(e.target.value);
-    };
-
-    const handleProfileImageChange = (e) => {
+    const handleFileChange = (e, setter) => {
         const file = e.target.files[0];
-        setProfileImage(file);
-    };
-
-    const handleIdPhotoChange = (e) => {
-        const file = e.target.files[0];
-        setIdPhoto(file);
+        setter(file);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
-        if (!username || !password || !registrationNumber || !fullName) {
-            setError('Please fill out all required fields.');
-            return;
-        }
-    
-        try {
-            const formData = new FormData();
-            formData.append('userType', userType);
-            formData.append('username', username);
-            formData.append('password', password);
-            formData.append('registrationNumber', registrationNumber);
-            formData.append('fullName', fullName);
-            formData.append('batch', batch);
-            formData.append('department', department);
-            formData.append('profileImage', profileImage);
-            formData.append('idPhoto', idPhoto);
-    
-            const response = await axiosInstance.post('/auth/signup', formData);
-    
-            console.log('User registered successfully:', response.data);
 
-            // Reset form fields and state after successful registration
-            setUsername('');
-            setPassword('');
-            setRegistrationNumber('');
-            setFullName('');
-            setBatch('');
-            setDepartment('');
-            setProfileImage(null);
-            setIdPhoto(null);
-            setError('');
+        const formData = new FormData();
+        formData.append('role', userType);
+        formData.append('username', username);
+        formData.append('password', password);
+        formData.append('registrationNumber', registrationNumber);
+        formData.append('fullName', fullName);
+        formData.append('profileImage', profileImage);
+        formData.append('idPhoto', idPhoto);
+
+        try {
+
+
+            if (userType === 'student') {
+                formData.append('batch', batch);
+            } else if (userType === 'lecturer') {
+                formData.append('department', department);
+            }
+
+            const response = await axios.post('http://127.0.0.1:3001/auth/signup', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            console.log('User registered successfully:', response.data);
+            alert('Account created successfully');
+            navigate('/login');
         } catch (error) {
             console.error('Error registering user:', error);
-    
-            if (error.response && error.response.data) {
-                setError('Failed to register user. Please try again.');
-            } else {
-                setError('An unexpected error occurred. Please try again.');
-            }
+            setError('Failed to register user. Please try again.');
         }
     };
-    
 
     return (
         <div className="signup-container">
@@ -107,24 +75,24 @@ const SignUp = () => {
                 <div className="signup-form-box">
                     <h2>Faculty Of Engineering - Results Management System</h2>
                     {error && <div className="error-message">{error}</div>}
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} encType="multipart/form-data">
                         <label htmlFor="userType">User Type:</label>
                         <select id="userType" name="userType" value={userType} onChange={handleUserTypeChange}>
                             <option value="student">Student</option>
                             <option value="lecturer">Lecturer</option>
                         </select>
                         <label htmlFor="username">Username:</label>
-                        <input type="text" id="username" name="username" value={username} onChange={handleUsernameChange} />
+                        <input type="text" id="username" name="username" value={username} onChange={(e) => handleInputChange(e, setUsername)} />
                         <label htmlFor="password">Password:</label>
-                        <input type="password" id="password" name="password" value={password} onChange={handlePasswordChange} />
+                        <input type="password" id="password" name="password" value={password} onChange={(e) => handleInputChange(e, setPassword)} />
                         <label htmlFor="registrationNumber">Registration Number:</label>
-                        <input type="text" id="registrationNumber" name="registrationNumber" value={registrationNumber} onChange={handleRegistrationNumberChange} />
+                        <input type="text" id="registrationNumber" name="registrationNumber" value={registrationNumber} onChange={(e) => handleInputChange(e, setRegistrationNumber)} />
                         <label htmlFor="fullName">Full Name:</label>
-                        <input type="text" id="fullName" name="fullName" value={fullName} onChange={handleFullNameChange} />
+                        <input type="text" id="fullName" name="fullName" value={fullName} onChange={(e) => handleInputChange(e, setFullName)} />
                         {userType === 'student' && (
                             <>
                                 <label htmlFor="batch">Batch:</label>
-                                <select id="batch" name="batch" value={batch} onChange={handleBatchChange}>
+                                <select id="batch" name="batch" value={batch} onChange={(e) => handleInputChange(e, setBatch)}>
                                     <option value="">Select Batch</option>
                                     <option value="21 batch">21 batch</option>
                                     <option value="22 batch">22 batch</option>
@@ -137,13 +105,13 @@ const SignUp = () => {
                         {userType === 'lecturer' && (
                             <>
                                 <label htmlFor="department">Department:</label>
-                                <input type="text" id="department" name="department" value={department} onChange={handleDepartmentChange} />
+                                <input type="text" id="department" name="department" value={department} onChange={(e) => handleInputChange(e, setDepartment)} />
                             </>
                         )}
                         <label htmlFor="profileImage">Profile Image:</label>
-                        <input type="file" id="profileImage" name="profileImage" onChange={handleProfileImageChange} />
+                        <input type="file" id="profileImage" name="profileImage" onChange={(e) => handleFileChange(e, setProfileImage)} />
                         <label htmlFor="idPhoto">ID Photo:</label>
-                        <input type="file" id="idPhoto" name="idPhoto" onChange={handleIdPhotoChange} />
+                        <input type="file" id="idPhoto" name="idPhoto" onChange={(e) => handleFileChange(e, setIdPhoto)} />
                         <button type="submit">Sign Up</button>
                     </form>
                 </div>

@@ -1,16 +1,20 @@
 .dashboard-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100%;
 }
 
 .dashboard-content {
     flex: 1;
-    padding: 20px;
     display: flex;
-    margin-top: 150px;
+    flex-wrap: wrap;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+    padding: 20px;
+    text-align: center;
+    margin-top: 100px;
+    overflow-y: auto;
 }
 
 .filter-box {
@@ -53,6 +57,7 @@
 .results-table {
     width: 100%;
     margin-top: 20px;
+    font-size: 14px; 
 }
 
 .results-table table {
@@ -75,5 +80,15 @@
     .filter-section select,
     .filter-section input {
         width: 100%;
+    }
+
+    .results-table {
+        overflow-x: auto; 
+        font-size: 12px; 
+    }
+
+    .results-table th,
+    .results-table td {
+        padding: 8px; 
     }
 }

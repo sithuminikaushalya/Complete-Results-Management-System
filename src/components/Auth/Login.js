@@ -38,15 +38,15 @@ const Login = () => {
     
             const response = await axiosInstance.post('/auth/signup', formData);
     
-            console.log('User registered successfully:', response.data);
+            console.log('User Login successfully:', response.data);
             setUsername('');
             setPassword('');
             setError('');
         } catch (error) {
-            console.error('Error registering user:', error);
+            console.error('Error logging user:', error);
     
             if (error.response && error.response.data) {
-                setError('Failed to register user. Please try again.');
+                setError('Failed to login user. Please try again.');
             } else {
                 setError('An unexpected error occurred. Please try again.');
             }
