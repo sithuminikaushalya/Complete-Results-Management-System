@@ -1,72 +1,85 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
+const multer = require('multer');
+const { body, validationResult } = require('express-validator');
 const User = require('../models/user');
 
-router.post('/signup', async (req, res) => {
-  try {
-    const { username, password, role, batch, department } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
+// Multer storage configuration
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now()); 
     }
-
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, password: hashedPassword, role, batch, department });
-
-    // Handle file uploads (profile image and ID photo)
-    if (req.files && req.files.profileImage) {
-      const profileImage = req.files.profileImage;
-      // Handle storing profile image, e.g., using multer or similar middleware
-      // Example: newUser.profileImage = profileImage.path; (store path in database)
-    }
-
-    if (req.files && req.files.idPhoto) {
-      const idPhoto = req.files.idPhoto;
-      // Handle storing ID photo, e.g., using multer or similar middleware
-      // Example: newUser.idPhoto = idPhoto.path; (store path in database)
-    }
-
-    await newUser.save();
-
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error('Error signing up user:', error);
-    res.status(500).json({ error: 'Failed to register user' });
-  }
 });
 
-router.post('/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+// Multer file filter configuration
+const fileFilter = function (req, file, cb) {
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only images are allowed.'), false);
+    }
+};
+
+// Multer upload configuration
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+}).fields([
+    { name: 'profileImage', maxCount: 1 },
+    { name: 'idPhoto', maxCount: 1 }
+]);
+
+// Route handler for signup endpoint
+router.post('/signup', upload, [
+    // Implement validation middleware using express-validator
+    body('role').notEmpty().withMessage('Role is required'),
+    body('username').notEmpty().withMessage('Username is required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    (req, res, next) => {
+        // Validate file uploads
+        if (!req.files || !req.files.profileImage || !req.files.idPhoto) {
+            return res.status(400).json({ error: 'Profile image and ID photo are required' });
+        }
+        next(); // Proceed to next middleware if validation passes
+    }
+], async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
     }
 
-    // Compare password using bcrypt
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    try {
+        // Destructure request body and files
+        const { role, username, password, registrationNumber, fullName, batch, department } = req.body;
+        const { profileImage, idPhoto } = req.files;
 
-    // Determine login message based on user role
-    let message = 'Login successful';
-    if (user.role === 'admin') {
-      message = 'Admin login successful';
-    } else if (user.role === 'student') {
-      message = 'Student login successful';
-    }
+        // Create new user instance
+        const user = new User({
+            role,
+            username,
+            password,
+            registrationNumber,
+            fullName,
+            batch,
+            department,
+            profileImage: profileImage[0].path, 
+            idPhoto: idPhoto[0].path 
+        });
 
-    res.status(200).json({ message, user });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+        // Save user to database
+        await user.save();
+
+        // Respond with success message
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (error) {
+        // Handle registration error
+        console.error('Error registering user:', error);
+        res.status(500).json({ error: 'Failed to register user' });
+    }
 });
 
 module.exports = router;
