@@ -49,9 +49,13 @@
     padding: 8px 16px;
     border-radius: 5px;
     background-color: #007bff;
-    color: #fff;
+    color: #0c0b0b;
     border: none;
     cursor: pointer;
+}
+
+.filter-section button:hover {
+    background-color: #6fee7e;
 }
 
 .results-table {
