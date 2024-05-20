@@ -105,7 +105,14 @@ const SignUp = () => {
                         {userType === 'lecturer' && (
                             <>
                                 <label htmlFor="department">Department:</label>
-                                <input type="text" id="department" name="department" value={department} onChange={(e) => handleInputChange(e, setDepartment)} />
+                                <select id="department" name="department" value={department} onChange={(e) => handleInputChange(e, setDepartment)}>
+                                    <option value="">Select Department</option>
+                                    <option value="21 batch">Electrical</option>
+                                    <option value="22 batch">Computer</option>
+                                    <option value="23 batch">Mechanical</option>
+                                    <option value="24 batch">Civil</option>
+                                    <option value="Graduate">Marine</option>
+                                </select>
                             </>
                         )}
                         <label htmlFor="profileImage">Profile Image:</label>

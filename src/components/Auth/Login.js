@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 import './Login.css';
-import axiosInstance from '../../utils/api';
+import axios from 'axios';
 
 const Login = () => {
     const [userType, setUserType] = useState('student');
@@ -24,36 +24,34 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
-        if (!username || !password) {
-            setError('Username and password are required');
+
+        // Ensure userType is either 'student' or 'lecturer'
+        if (userType !== 'student' && userType !== 'lecturer') {
+            setError('Invalid user type');
             return;
         }
-    
+
+        const formData = new FormData();
+        formData.append('role', userType);
+        formData.append('username', username);
+        formData.append('password', password);
+
         try {
-            const formData = new FormData();
-            formData.append('userType', userType);
-            formData.append('username', username);
-            formData.append('password', password);
-    
-            const response = await axiosInstance.post('/auth/signup', formData);
-    
+            const response = await axios.post('http://127.0.0.1:3001/auth/login', formData);
             console.log('User Login successfully:', response.data);
             setUsername('');
             setPassword('');
             setError('');
         } catch (error) {
             console.error('Error logging user:', error);
-    
             if (error.response && error.response.data) {
                 setError('Failed to login user. Please try again.');
             } else {
                 setError('An unexpected error occurred. Please try again.');
             }
         }
-    };
+    };    
     
-
     return (
         <div className="login-container">
             <Navbar />
