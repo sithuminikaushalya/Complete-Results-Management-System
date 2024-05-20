@@ -7,10 +7,10 @@ const path = require('path');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../uploads/')); // Use absolute path for destination directory
+        cb(null, path.join(__dirname, '../uploads/'));
     },
     filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now()); 
+        cb(null, file.fieldname + '-' + Date.now());
     }
 });
 
@@ -38,7 +38,7 @@ router.post('/signup', upload, [
         if (!req.files || !req.files.profileImage || !req.files.idPhoto) {
             return res.status(400).json({ error: 'Profile image and ID photo are required' });
         }
-        next(); 
+        next();
     }
 ], async (req, res) => {
     const errors = validationResult(req);
@@ -58,8 +58,8 @@ router.post('/signup', upload, [
             fullName,
             batch,
             department,
-            profileImage: profileImage[0].path, 
-            idPhoto: idPhoto[0].path 
+            profileImage: profileImage[0].path,
+            idPhoto: idPhoto[0].path
         });
 
         await user.save();
@@ -70,5 +70,36 @@ router.post('/signup', upload, [
         res.status(500).json({ error: 'Failed to register user' });
     }
 });
+
+router.post('/login', [
+    body('role').notEmpty().withMessage('Role is required'),
+    body('username').notEmpty().withMessage('Username is required'),
+    body('password').notEmpty().withMessage('Password is required'),
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { role, username, password } = req.body;
+
+    try {
+        const user = await User.findOne({ role, username });
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        res.status(200).json({ message: 'Login successful' });
+    } catch (error) {
+        console.error('Error logging in:', error);
+        res.status(500).json({ error: 'Failed to login' });
+    }
+});
+
 
 module.exports = router;

@@ -19,6 +19,7 @@ app.use(express.json());
 app.use(morgan("dev")); 
 app.use(cors()); 
 
+app.use('/auth', require('./routes/auth'));
 app.use('/auth', authRoutes); 
 app.use('/students', studentRoutes); 
 app.use('/courses', courseRoutes); 
