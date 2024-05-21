@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     batch: { type: String },
     department: { type: String },
     profileImage: { type: String }, 
-    idPhoto: { type: String } 
+    idPhoto: { type: String }
 });
 
 userSchema.pre('save', async function(next) {

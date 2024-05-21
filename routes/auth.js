@@ -4,6 +4,7 @@ const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/user');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -78,6 +79,7 @@ router.post('/login', [
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
@@ -89,6 +91,7 @@ router.post('/login', [
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -100,6 +103,5 @@ router.post('/login', [
         res.status(500).json({ error: 'Failed to login' });
     }
 });
-
 
 module.exports = router;
