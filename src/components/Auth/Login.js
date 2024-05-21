@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 import './Login.css';
@@ -9,6 +10,8 @@ const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+
+    const navigate = useNavigate(); 
 
     const handleUserTypeChange = (e) => {
         setUserType(e.target.value);
@@ -24,24 +27,36 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Ensure userType is either 'student' or 'lecturer'
         if (userType !== 'student' && userType !== 'lecturer') {
             setError('Invalid user type');
             return;
         }
+    
+        const data = {
+            role: userType,
+            username,
+            password
+        };
 
-        const formData = new FormData();
-        formData.append('role', userType);
-        formData.append('username', username);
-        formData.append('password', password);
-
+        console.log('Sending data:', data);
+    
         try {
-            const response = await axios.post('http://127.0.0.1:3001/auth/login', formData);
+            const response = await axios.post('http://127.0.0.1:3001/auth/login', data, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             console.log('User Login successfully:', response.data);
             setUsername('');
             setPassword('');
             setError('');
+
+            if (userType === 'lecturer') {
+                navigate('/lecturer-dashboard');
+            } else {
+                navigate('/student-dashboard');
+            }
+
         } catch (error) {
             console.error('Error logging user:', error);
             if (error.response && error.response.data) {
@@ -50,7 +65,8 @@ const Login = () => {
                 setError('An unexpected error occurred. Please try again.');
             }
         }
-    };    
+    };
+    
     
     return (
         <div className="login-container">
