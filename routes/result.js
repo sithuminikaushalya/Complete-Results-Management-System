@@ -1,41 +1,45 @@
 const express = require('express');
 const router = express.Router();
 const Result = require('../models/Result');
+const Student = require('../models/Student');
 
-router.post('/', async (req, res) => {
+// Fetch students based on department and semester
+router.get('/students', async (req, res) => {
   try {
-    const { studentId, subject, marks } = req.body;
-    const newResult = new Result({ studentId, subject, marks });
-    await newResult.save();
-    res.status(201).json({ message: 'Result added successfully' });
+    const { department, semester } = req.query;
+    const students = await Student.find({ department, semester }).populate('results');
+    res.json(students);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/', async (req, res) => {
+// Add a new student
+router.post('/students', async (req, res) => {
   try {
-    const results = await Result.find();
-    res.json(results);
+    const newStudent = new Student(req.body);
+    await newStudent.save();
+    res.status(201).json(newStudent);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.put('/:id', async (req, res) => {
+// Update student data
+router.put('/students/:id', async (req, res) => {
   try {
-    const { subject, marks } = req.body;
-    const result = await Result.findByIdAndUpdate(req.params.id, { subject, marks }, { new: true });
-    res.json(result);
+    const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedStudent);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/:id', async (req, res) => {
+// Delete a student
+router.delete('/students/:id', async (req, res) => {
   try {
-    await Result.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Result deleted successfully' });
+    await Student.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Student deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
