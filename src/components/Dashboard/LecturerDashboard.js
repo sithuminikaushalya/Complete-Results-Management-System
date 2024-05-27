@@ -73,6 +73,16 @@ const LecturerDashboard = () => {
     };
 
     const handleAddStudent = () => {
+        // Prepare module data based on selected semester and department
+        const selectedModules = getModulesForSemester(semester).map(moduleName => ({ name: moduleName, result: '' }));
+
+        // Set new student data with selected modules
+        setNewStudentData({
+            registrationNumber: '',
+            name: '',
+            modules: selectedModules
+        });
+
         setShowAddStudentForm(true);
     };
 
@@ -107,15 +117,37 @@ const LecturerDashboard = () => {
         console.log(`Update student with registration number ${registrationNumber}`);
     };
 
-    const handleModuleChange = (e) => {
-        const { value } = e.target;
-        const updatedModules = newStudentData.modules.map(module => ({ ...module, result: value }));
+    const handleModuleChange = (index, value) => {
+        const updatedModules = newStudentData.modules.map((module, idx) => (
+            idx === index ? { ...module, result: value } : module
+        ));
         setNewStudentData(prevData => ({
             ...prevData,
             modules: updatedModules
         }));
     };
-    
+
+    const calculateSGPA = (modules) => {
+        // Calculation logic for SGPA based on modules
+        // Similar to GPA, but might have different logic based on your requirements
+        return calculateGPA(modules); // Using GPA logic here as a placeholder
+    };
+
+    const gradeToPoint = (grade) => {
+        switch (grade) {
+            case 'A': return 4.0;
+            case 'A-': return 3.7;
+            case 'A+': return 4.0;
+            case 'B': return 3.0;
+            case 'B-': return 2.7;
+            case 'B+': return 3.3;
+            case 'C': return 2.0;
+            case 'C-': return 1.7;
+            case 'C+': return 2.3;
+            case 'E': return 0.0;
+            default: return 0.0;
+        }
+    };
 
     return (
         <div className="dashboard-container-lec">
@@ -204,8 +236,6 @@ const LecturerDashboard = () => {
                                                         </select>
                                                     </td>
                                                 ))}
-
-
                                                 <td>{student.gpa.toFixed(2)}</td>
                                                 <td>{student.sgpa.toFixed(2)}</td>
                                                 <td>
@@ -230,57 +260,75 @@ const LecturerDashboard = () => {
                     </>
                 )}
 
-                {showAddStudentForm && (
-                    <div className="popup-form-container">
-                        <div className="popup-form">
-                            <h3>Add New Student</h3>
-                            <label htmlFor="regNumber">Registration Number:</label>
-                            <input
-                                type="text"
-                                id="regNumber"
-                                value={newStudentData.registrationNumber}
-                                onChange={(e) => handleStudentInfoChange('registrationNumber', e.target.value)}
-                            />
-                            <label htmlFor="studentName">Student Name:</label>
-                            <input
-                                type="text"
-                                id="studentName"
-                                value={newStudentData.name}
-                                onChange={(e) => handleStudentInfoChange('name', e.target.value)}
-                            />
-                            {/* Module selection */}
-                            <label htmlFor="moduleSelect">Select Modules:</label>
-                            <select
-                                id="moduleSelect"
-                                value={newStudentData.modules.map(module => module.result)}
-                                onChange={(e) => handleModuleChange(e)}
-                                className="select-grade-lec"
-                            >
-                                <option value="">Select Grade</option>
-                                <option value="A">A (4.0)</option>
-                                <option value="A-">A- (3.7)</option>
-                                <option value="A+">A+ (4.0)</option>
-                                <option value="B">B (3.0)</option>
-                                <option value="B-">B- (2.7)</option>
-                                <option value="B+">B+ (3.3)</option>
-                                <option value="C">C (2.0)</option>
-                                <option value="C-">C- (1.7)</option>
-                                <option value="C+">C+ (2.3)</option>
-                                <option value="E">E (0.0)</option>
-                            </select>
-                            <div className="popup-form-buttons">
-                                <button onClick={handleCloseForm}>Cancel</button>
-                                <button onClick={handleSubmitForm}>Submit</button>
-                            </div>
-                        </div>
+{showAddStudentForm && (
+    <div className="popup-form-container">
+        <div className="popup-form">
+            <h3>Add New Student</h3>
+            <label htmlFor="regNumber">Registration Number:</label>
+            <input
+                type="text"
+                id="regNumber"
+                value={newStudentData.registrationNumber}
+                onChange={(e) => handleStudentInfoChange('registrationNumber', e.target.value)}
+            />
+            <label htmlFor="studentName">Student Name:</label>
+            <input
+                type="text"
+                id="studentName"
+                value={newStudentData.name}
+                onChange={(e) => handleStudentInfoChange('name', e.target.value)}
+            />
+            <div className="module-grid">
+                {newStudentData.modules.map((module, index) => (
+                    <div key={index} className="module-item">
+                        <label htmlFor={`moduleSelect${index}`}>Module {index + 1} - {module.name}:</label>
+                        <select
+                            id={`moduleSelect${index}`}
+                            value={module.result || ""}
+                            onChange={(e) => handleModuleChange(index, e.target.value)}
+                            className="select-grade-lec"
+                        >
+                            <option value="">Select Grade</option>
+                            <option value="A">A (4.0)</option>
+                            <option value="A-">A- (3.7)</option>
+                            <option value="A+">A+ (4.0)</option>
+                            <option value="B">B (3.0)</option>
+                            <option value="B-">B- (2.7)</option>
+                            <option value="B+">B+ (3.3)</option>
+                            <option value="C">C (2.0)</option>
+                            <option value="C-">C- (1.7)</option>
+                            <option value="C+">C+ (2.3)</option>
+                            <option value="E">E (0.0)</option>
+                        </select>
                     </div>
+                ))}
+            </div>
+            <label htmlFor="gpa">GPA:</label>
+            <input
+                type="text"
+                id="gpa"
+                value={calculateGPA(newStudentData.modules)}
+                readOnly
+            />
+            <label htmlFor="sgpa">SGPA:</label>
+            <input
+                type="text"
+                id="sgpa"
+                value={calculateSGPA(newStudentData.modules)}
+                readOnly
+            />
+            <div className="popup-form-buttons">
+                <button onClick={handleCloseForm}>Cancel</button>
+                <button onClick={handleSubmitForm}>Submit</button>
+            </div>
+        </div>
+    </div>
+)}
 
-                )}
             </div>
             <Footer />
         </div>
     );
-
 };
 
 export default LecturerDashboard;
