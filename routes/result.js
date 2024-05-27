@@ -1,45 +1,42 @@
 const express = require('express');
 const router = express.Router();
 const Result = require('../models/Result');
-const Student = require('../models/Student');
 
-// Fetch students based on department and semester
-router.get('/students', async (req, res) => {
+// Route to add a new result
+router.post('/', async (req, res) => {
   try {
-    const { department, semester } = req.query;
-    const students = await Student.find({ department, semester }).populate('results');
-    res.json(students);
+    const result = await Result.create(req.body);
+    res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Add a new student
-router.post('/students', async (req, res) => {
+// Route to update a result by ID
+router.put('/:registrationNumber', async (req, res) => {
   try {
-    const newStudent = new Student(req.body);
-    await newStudent.save();
-    res.status(201).json(newStudent);
+    const result = await Result.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Update student data
-router.put('/students/:id', async (req, res) => {
+// Route to delete a result by ID
+router.delete('/:registrationNumber', async (req, res) => {
   try {
-    const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updatedStudent);
+    await Result.findByIdAndDelete(req.params.id);
+    res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Delete a student
-router.delete('/students/:id', async (req, res) => {
+// Route to fetch results by department and semester
+router.get('/:department/:semester', async (req, res) => {
   try {
-    await Student.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Student deleted successfully' });
+    const results = await Result.find({ department: req.params.department, semester: req.params.semester });
+    res.status(200).json(results);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

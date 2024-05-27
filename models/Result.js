@@ -1,10 +1,42 @@
 const mongoose = require('mongoose');
 
 const resultSchema = new mongoose.Schema({
-  student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
-  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
-  marks: { type: Number, required: true },
-  grade: { type: String, required: true }
+  registrationNumber: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  department: {
+    type: String,
+    required: true
+  },
+  semester: {
+    type: String,
+    required: true
+  },
+  modules: [{
+    name: {
+      type: String,
+      required: true
+    },
+    result: {
+      type: String,
+      required: true
+    }
+  }],
+  gpa: {
+    type: Number,
+    required: true
+  },
+  sgpa: {
+    type: Number,
+    required: true
+  }
 });
 
-module.exports = mongoose.model('Result', resultSchema);
+const Result = mongoose.model('Result', resultSchema);
+
+module.exports = Result;

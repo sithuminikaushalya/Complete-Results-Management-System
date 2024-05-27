@@ -15,15 +15,15 @@ const PORT = process.env.PORT || 3001;
 const dbName = 'result-management';
 const mongoURI = `mongodb://127.0.0.1:27017/${dbName}`;
 
-app.use(express.json()); 
-app.use(morgan("dev")); 
-app.use(cors()); 
+app.use(express.json());
+app.use(morgan("dev"));
+app.use(cors());
 
 app.use('/auth', require('./routes/auth'));
-app.use('/auth', authRoutes); 
-app.use('/students', studentRoutes); 
-app.use('/courses', courseRoutes); 
-app.use('/results', resultRoutes); 
+app.use('/auth', authRoutes);
+app.use('/students', studentRoutes);
+app.use('/courses', courseRoutes);
+app.use('/result', resultRoutes);
 
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
@@ -38,49 +38,3 @@ mongoose.connect(mongoURI, {
 .catch((error) => {
   console.error('MongoDB connection error:', error);
 });
-
-// const express = require("express");
-// const mongoose = require("mongoose");
-// const morgan = require("morgan");
-// const cors = require("cors");
-// const bodyParser = require('body-parser');
-// const dotenv = require('dotenv');
-
-// dotenv.config();
-
-// const authRoutes = require('./routes/auth');
-// const studentRoutes = require('./routes/student');
-// const courseRoutes = require('./routes/course');
-// const resultRoutes = require('./routes/result');
-
-// const app = express();
-// const PORT = process.env.PORT || 3001;
-// const dbName = 'result-management';
-// const mongoURI = `mongodb://127.0.0.1:27017/${dbName}`;
-
-// // Middleware
-// app.use(bodyParser.json());
-// app.use(morgan("dev"));
-// app.use(cors());
-
-// // Routes
-// app.use('/auth', authRoutes);
-// app.use('/students', studentRoutes);
-// app.use('/courses', courseRoutes);
-// app.use('/results', resultRoutes);
-
-// // MongoDB connection
-// mongoose.connect(mongoURI, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// })
-// .then(() => {
-//   console.log('MongoDB connected');
-//   app.listen(PORT, () => {
-//     console.log(`Server is running on port ${PORT}`);
-//   });
-// })
-// .catch((error) => {
-//   console.error('MongoDB connection error:', error);
-// });
-
