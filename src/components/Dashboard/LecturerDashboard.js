@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 import './LecturerDashboard.css';
@@ -43,6 +43,44 @@ const LecturerDashboard = () => {
             setEditingStudent(registrationNumber);
         }
     };   
+
+    const handleDeleteStudent = async (registrationNumber) => {
+        try {
+            const response = await fetch(`http://127.0.0.1:3001/result/${registrationNumber}`, {
+                method: 'DELETE'
+            });
+    
+            if (response.ok) {
+                const updatedStudents = students.filter(student => student.registrationNumber !== registrationNumber);
+                setStudents(updatedStudents);
+            } else {
+                console.error('Failed to delete student');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+    
+    useEffect(() => {
+        // Fetch student data from backend when component mounts
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://127.0.0.1:3001/students?department=${department}&semester=${semester}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setStudents(data);
+                } else {
+                    console.error('Failed to fetch student data');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        };
+        if (department && semester) {
+            fetchData();
+        }
+    }, [department, semester]);
+    
 
     const handleDepartmentChange = (e) => {
         setDepartment(e.target.value);
@@ -97,11 +135,6 @@ const LecturerDashboard = () => {
         setStudents(updatedStudents);
     };
 
-    const handleDeleteStudent = (registrationNumber) => {
-        const updatedStudents = students.filter(student => student.registrationNumber !== registrationNumber);
-        setStudents(updatedStudents);
-    };
-
     const handleAddStudent = () => {
         const selectedModules = getModulesForSemester(semester).map(moduleName => ({ name: moduleName, result: '' }));
         setNewStudentData({
@@ -120,11 +153,11 @@ const LecturerDashboard = () => {
         const newStudent = {
             ...newStudentData,
             department,
-            semester,
+            semester, 
             gpa: calculateGPA(newStudentData.modules.map(module => module.result)),
             sgpa: calculateSGPA(newStudentData.modules.map(module => module.result))
         };
-
+    
         try {
             const response = await fetch('http://127.0.0.1:3001/result', {
                 method: 'POST',
@@ -133,7 +166,7 @@ const LecturerDashboard = () => {
                 },
                 body: JSON.stringify(newStudent)
             });
-
+    
             if (response.ok) {
                 const savedStudent = await response.json();
                 setStudents([...students, savedStudent]);
@@ -149,7 +182,7 @@ const LecturerDashboard = () => {
         } catch (error) {
             console.error('Error:', error);
         }
-    };
+    };    
 
     const handleStudentInfoChange = (key, value) => {
         setNewStudentData(prevData => ({
