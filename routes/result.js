@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Result = require('../models/Result');
 
+
 // Route to add a new result
 router.post('/', async (req, res) => {
   try {
@@ -17,9 +18,10 @@ router.post('/', async (req, res) => {
 // Route to update a result by registration number
 router.put('/:registrationNumber', async (req, res) => {
   try {
+      const { name, modules, gpa, sgpa } = req.body; 
       const updatedResult = await Result.findOneAndUpdate(
           { registrationNumber: req.params.registrationNumber },
-          req.body,
+          { name, modules, gpa, sgpa }, 
           { new: true }
       );
 
@@ -33,24 +35,38 @@ router.put('/:registrationNumber', async (req, res) => {
   }
 });
 
+
 // Route to delete a result by registration number
 router.delete('/:registrationNumber', async (req, res) => {
   try {
-    await Result.findOneAndDelete({ registrationNumber: req.params.registrationNumber });
+    const deletedResult = await Result.findOneAndDelete({ registrationNumber: req.params.registrationNumber });
+    if (!deletedResult) {
+        return res.status(404).json({ error: 'Result not found' });
+    }
     res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Route to fetch results by department and semester
-router.get('/:department/:semester', async (req, res) => {
+// Route to get students by department and semester
+router.get('/students', async (req, res) => {
+  const { department, semester } = req.query;
   try {
-    const results = await Result.find({ department: req.params.department, semester: req.params.semester });
-    res.status(200).json(results);
+    let query = {};
+    if (department) {
+      query.department = department;
+    }
+    if (semester) {
+      query.semester = semester;
+    }
+    const students = await Result.find(query); 
+    res.json(students);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 module.exports = router;

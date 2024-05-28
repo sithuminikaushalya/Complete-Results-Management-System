@@ -10,7 +10,9 @@ const resultSchema = new mongoose.Schema({
         }
     ],
     gpa: { type: Number, required: true },
-    sgpa: { type: Number, required: true }
+    sgpa: { type: Number, required: true },
+    department: { type: String, required: true },
+    semester: { type: String, required: true } 
 });
 
 const Result = mongoose.model('Result', resultSchema);
