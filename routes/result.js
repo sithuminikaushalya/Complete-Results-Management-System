@@ -14,18 +14,22 @@ router.post('/', async (req, res) => {
   }
 });
 
-
 // Route to update a result by registration number
 router.put('/:registrationNumber', async (req, res) => {
   try {
-    const result = await Result.findOneAndUpdate(
-      { registrationNumber: req.params.registrationNumber },
-      req.body,
-      { new: true }
-    );
-    res.status(200).json(result);
+      const updatedResult = await Result.findOneAndUpdate(
+          { registrationNumber: req.params.registrationNumber },
+          req.body,
+          { new: true }
+      );
+
+      if (!updatedResult) {
+          return res.status(404).json({ error: 'Result not found' });
+      }
+
+      res.json(updatedResult);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
   }
 });
 
