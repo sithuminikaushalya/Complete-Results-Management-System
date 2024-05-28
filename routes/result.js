@@ -5,27 +5,34 @@ const Result = require('../models/Result');
 // Route to add a new result
 router.post('/', async (req, res) => {
   try {
+    console.log('Request Body:', req.body); 
     const result = await Result.create(req.body);
     res.status(201).json(result);
   } catch (error) {
+    console.error('Error creating result:', error); 
     res.status(500).json({ error: error.message });
   }
 });
 
-// Route to update a result by ID
+
+// Route to update a result by registration number
 router.put('/:registrationNumber', async (req, res) => {
   try {
-    const result = await Result.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const result = await Result.findOneAndUpdate(
+      { registrationNumber: req.params.registrationNumber },
+      req.body,
+      { new: true }
+    );
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Route to delete a result by ID
+// Route to delete a result by registration number
 router.delete('/:registrationNumber', async (req, res) => {
   try {
-    await Result.findByIdAndDelete(req.params.id);
+    await Result.findOneAndDelete({ registrationNumber: req.params.registrationNumber });
     res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: error.message });
