@@ -7,12 +7,42 @@ const LecturerDashboard = () => {
     const [department, setDepartment] = useState('');
     const [semester, setSemester] = useState('');
     const [students, setStudents] = useState([]);
+    const [editingStudent, setEditingStudent] = useState(null);
     const [showAddStudentForm, setShowAddStudentForm] = useState(false);
     const [newStudentData, setNewStudentData] = useState({
         registrationNumber: '',
         name: '',
         modules: []
     });
+
+    const handleUpdateStudent = async (registrationNumber) => {
+        if (editingStudent === registrationNumber) {
+            const updatedStudent = students.find(student => student.registrationNumber === registrationNumber);
+            try {
+                const response = await fetch(`http://127.0.0.1:3001/result/${registrationNumber}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedStudent)
+                });
+    
+                if (response.ok) {
+                    const savedStudent = await response.json();
+                    setStudents(students.map(student =>
+                        student.registrationNumber === registrationNumber ? savedStudent : student
+                    ));
+                    setEditingStudent(null);
+                } else {
+                    console.error('Failed to update student');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        } else {
+            setEditingStudent(registrationNumber);
+        }
+    };   
 
     const handleDepartmentChange = (e) => {
         setDepartment(e.target.value);
@@ -73,16 +103,12 @@ const LecturerDashboard = () => {
     };
 
     const handleAddStudent = () => {
-        // Prepare module data based on selected semester and department
         const selectedModules = getModulesForSemester(semester).map(moduleName => ({ name: moduleName, result: '' }));
-
-        // Set new student data with selected modules
         setNewStudentData({
             registrationNumber: '',
             name: '',
             modules: selectedModules
         });
-
         setShowAddStudentForm(true);
     };
 
@@ -93,12 +119,12 @@ const LecturerDashboard = () => {
     const handleSubmitForm = async () => {
         const newStudent = {
             ...newStudentData,
-            department, // Add department here
-            semester, // Add semester here
+            department,
+            semester,
             gpa: calculateGPA(newStudentData.modules.map(module => module.result)),
             sgpa: calculateSGPA(newStudentData.modules.map(module => module.result))
         };
-    
+
         try {
             const response = await fetch('http://127.0.0.1:3001/result', {
                 method: 'POST',
@@ -107,7 +133,7 @@ const LecturerDashboard = () => {
                 },
                 body: JSON.stringify(newStudent)
             });
-    
+
             if (response.ok) {
                 const savedStudent = await response.json();
                 setStudents([...students, savedStudent]);
@@ -124,17 +150,12 @@ const LecturerDashboard = () => {
             console.error('Error:', error);
         }
     };
-    
 
     const handleStudentInfoChange = (key, value) => {
         setNewStudentData(prevData => ({
             ...prevData,
             [key]: value
         }));
-    };
-
-    const handleUpdateStudent = (registrationNumber) => {
-        console.log(`Update student with registration number ${registrationNumber}`);
     };
 
     const handleModuleChange = (index, value) => {
@@ -150,25 +171,7 @@ const LecturerDashboard = () => {
     };
 
     const calculateSGPA = (modules) => {
-        // Calculation logic for SGPA based on modules
-        // Similar to GPA, but might have different logic based on your requirements
-        return calculateGPA(modules); // Using GPA logic here as a placeholder
-    };
-
-    const gradeToPoint = (grade) => {
-        switch (grade) {
-            case 'A': return 4.0;
-            case 'A-': return 3.7;
-            case 'A+': return 4.0;
-            case 'B': return 3.0;
-            case 'B-': return 2.7;
-            case 'B+': return 3.3;
-            case 'C': return 2.0;
-            case 'C-': return 1.7;
-            case 'C+': return 2.3;
-            case 'E': return 0.0;
-            default: return 0.0;
-        }
+        return calculateGPA(modules);
     };
 
     return (
@@ -230,41 +233,60 @@ const LecturerDashboard = () => {
                                                     />
                                                 </td>
                                                 <td>
-                                                    <input
-                                                        type="text"
-                                                        value={student.name}
-                                                        readOnly
-                                                        className="input-field-lec"
-                                                    />
+                                                    {editingStudent === student.registrationNumber ? (
+                                                        <input
+                                                            type="text"
+                                                            value={student.name}
+                                                            onChange={(e) => handleResultChange(student.registrationNumber, 'name', e.target.value)}
+                                                            className="input-field-lec"
+                                                        />
+                                                    ) : (
+                                                        <input
+                                                            type="text"
+                                                            value={student.name}
+                                                            readOnly
+                                                            className="input-field-lec"
+                                                        />
+                                                    )}
                                                 </td>
                                                 {student.modules.map((module, index) => (
                                                     <td key={index}>
-                                                        <select
-                                                            value={module.result}
-                                                            onChange={(e) => handleResultChange(student.registrationNumber, index, e.target.value)}
-                                                            className="select-grade-lec"
-                                                        >
-                                                            <option value="">Select Grade</option>
-                                                            <option value="A">A (4.0)</option>
-                                                            <option value="A-">A- (3.7)</option>
-                                                            <option value="A+">A+ (4.0)</option>
-                                                            <option value="B">B (3.0)</option>
-                                                            <option value="B-">B- (2.7)</option>
-                                                            <option value="B+">B+ (3.3)</option>
-                                                            <option value="C">C (2.0)</option>
-                                                            <option value="C-">C- (1.7)</option>
-                                                            <option value="C+">C+ (2.3)</option>
-                                                            <option value="E">E (0.0)</option>
-                                                        </select>
+                                                        {editingStudent === student.registrationNumber ? (
+                                                            <select
+                                                                value={module.result}
+                                                                onChange={(e) => handleResultChange(student.registrationNumber, index, e.target.value)}
+                                                                className="select-grade-lec"
+                                                            >
+                                                                <option value="">Select Grade</option>
+                                                                <option value="A">A (4.0)</option>
+                                                                <option value="A-">A- (3.7)</option>
+                                                                <option value="A+">A+ (4.0)</option>
+                                                                <option value="B">B (3.0)</option>
+                                                                <option value="B-">B- (2.7)</option>
+                                                                <option value="B+">B+ (3.3)</option>
+                                                                <option value="C">C (2.0)</option>
+                                                                <option value="C-">C- (1.7)</option>
+                                                                <option value="C+">C+ (2.3)</option>
+                                                                <option value="E">E (0.0)</option>
+                                                            </select>
+                                                        ) : (
+                                                            <input
+                                                                type="text"
+                                                                value={module.result}
+                                                                readOnly
+                                                                className="input-field-lec"
+                                                            />
+                                                        )}
                                                     </td>
                                                 ))}
                                                 <td>{student.gpa.toFixed(2)}</td>
                                                 <td>{student.sgpa.toFixed(2)}</td>
                                                 <td>
-                                                    <button className="update-button-lec"
+                                                    <button
+                                                        className="update-button-lec"
                                                         onClick={() => handleUpdateStudent(student.registrationNumber)}
                                                     >
-                                                        Update
+                                                        {editingStudent === student.registrationNumber ? 'Save' : 'Update'}
                                                     </button>
                                                     <button
                                                         className="delete-button-lec"
