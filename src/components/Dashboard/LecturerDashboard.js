@@ -90,21 +90,41 @@ const LecturerDashboard = () => {
         setShowAddStudentForm(false);
     };
 
-    const handleSubmitForm = () => {
+    const handleSubmitForm = async () => {
         const newStudent = {
             ...newStudentData,
-            modules: getModulesForSemester(semester).map(moduleName => ({ name: moduleName, result: '' })),
-            gpa: 0,
-            sgpa: 0
+            department, // Add department here
+            semester, // Add semester here
+            gpa: calculateGPA(newStudentData.modules.map(module => module.result)),
+            sgpa: calculateSGPA(newStudentData.modules.map(module => module.result))
         };
-        setStudents([...students, newStudent]);
-        setShowAddStudentForm(false);
-        setNewStudentData({
-            registrationNumber: '',
-            name: '',
-            modules: []
-        });
+    
+        try {
+            const response = await fetch('http://127.0.0.1:3001/result', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newStudent)
+            });
+    
+            if (response.ok) {
+                const savedStudent = await response.json();
+                setStudents([...students, savedStudent]);
+                setShowAddStudentForm(false);
+                setNewStudentData({
+                    registrationNumber: '',
+                    name: '',
+                    modules: []
+                });
+            } else {
+                console.error('Failed to save student');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
+    
 
     const handleStudentInfoChange = (key, value) => {
         setNewStudentData(prevData => ({
@@ -123,7 +143,9 @@ const LecturerDashboard = () => {
         ));
         setNewStudentData(prevData => ({
             ...prevData,
-            modules: updatedModules
+            modules: updatedModules,
+            gpa: calculateGPA(updatedModules.map(module => module.result)),
+            sgpa: calculateSGPA(updatedModules.map(module => module.result))
         }));
     };
 
@@ -260,71 +282,70 @@ const LecturerDashboard = () => {
                     </>
                 )}
 
-{showAddStudentForm && (
-    <div className="popup-form-container">
-        <div className="popup-form">
-            <h3>Add New Student</h3>
-            <label htmlFor="regNumber">Registration Number:</label>
-            <input
-                type="text"
-                id="regNumber"
-                value={newStudentData.registrationNumber}
-                onChange={(e) => handleStudentInfoChange('registrationNumber', e.target.value)}
-            />
-            <label htmlFor="studentName">Student Name:</label>
-            <input
-                type="text"
-                id="studentName"
-                value={newStudentData.name}
-                onChange={(e) => handleStudentInfoChange('name', e.target.value)}
-            />
-            <div className="module-grid">
-                {newStudentData.modules.map((module, index) => (
-                    <div key={index} className="module-item">
-                        <label htmlFor={`moduleSelect${index}`}>Module {index + 1} - {module.name}:</label>
-                        <select
-                            id={`moduleSelect${index}`}
-                            value={module.result || ""}
-                            onChange={(e) => handleModuleChange(index, e.target.value)}
-                            className="select-grade-lec"
-                        >
-                            <option value="">Select Grade</option>
-                            <option value="A">A (4.0)</option>
-                            <option value="A-">A- (3.7)</option>
-                            <option value="A+">A+ (4.0)</option>
-                            <option value="B">B (3.0)</option>
-                            <option value="B-">B- (2.7)</option>
-                            <option value="B+">B+ (3.3)</option>
-                            <option value="C">C (2.0)</option>
-                            <option value="C-">C- (1.7)</option>
-                            <option value="C+">C+ (2.3)</option>
-                            <option value="E">E (0.0)</option>
-                        </select>
+                {showAddStudentForm && (
+                    <div className="popup-form-container">
+                        <div className="popup-form">
+                            <h3>Add New Student</h3>
+                            <label htmlFor="regNumber">Registration Number:</label>
+                            <input
+                                type="text"
+                                id="regNumber"
+                                value={newStudentData.registrationNumber}
+                                onChange={(e) => handleStudentInfoChange('registrationNumber', e.target.value)}
+                            />
+                            <label htmlFor="studentName">Student Name:</label>
+                            <input
+                                type="text"
+                                id="studentName"
+                                value={newStudentData.name}
+                                onChange={(e) => handleStudentInfoChange('name', e.target.value)}
+                            />
+                            <div className="module-grid">
+                                {newStudentData.modules.map((module, index) => (
+                                    <div key={index} className="module-item">
+                                        <label htmlFor={`moduleSelect${index}`}>Module {index + 1} - {module.name}:</label>
+                                        <select
+                                            id={`moduleSelect${index}`}
+                                            value={module.result || ""}
+                                            onChange={(e) => handleModuleChange(index, e.target.value)}
+                                            className="select-grade-lec"
+                                        >
+                                            <option value="">Select Grade</option>
+                                            <option value="A">A (4.0)</option>
+                                            <option value="A-">A- (3.7)</option>
+                                            <option value="A+">A+ (4.0)</option>
+                                            <option value="B">B (3.0)</option>
+                                            <option value="B-">B- (2.7)</option>
+                                            <option value="B+">B+ (3.3)</option>
+                                            <option value="C">C (2.0)</option>
+                                            <option value="C-">C- (1.7)</option>
+                                            <option value="C+">C+ (2.3)</option>
+                                            <option value="E">E (0.0)</option>
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                            <label htmlFor="gpa">GPA:</label>
+                            <input
+                                type="text"
+                                id="gpa"
+                                value={calculateGPA(newStudentData.modules.map(module => module.result))}
+                                readOnly
+                            />
+                            <label htmlFor="sgpa">SGPA:</label>
+                            <input
+                                type="text"
+                                id="sgpa"
+                                value={calculateSGPA(newStudentData.modules.map(module => module.result))}
+                                readOnly
+                            />
+                            <div className="popup-form-buttons">
+                                <button onClick={handleCloseForm}>Cancel</button>
+                                <button onClick={handleSubmitForm}>Submit</button>
+                            </div>
+                        </div>
                     </div>
-                ))}
-            </div>
-            <label htmlFor="gpa">GPA:</label>
-            <input
-                type="text"
-                id="gpa"
-                value={calculateGPA(newStudentData.modules)}
-                readOnly
-            />
-            <label htmlFor="sgpa">SGPA:</label>
-            <input
-                type="text"
-                id="sgpa"
-                value={calculateSGPA(newStudentData.modules)}
-                readOnly
-            />
-            <div className="popup-form-buttons">
-                <button onClick={handleCloseForm}>Cancel</button>
-                <button onClick={handleSubmitForm}>Submit</button>
-            </div>
-        </div>
-    </div>
-)}
-
+                )}
             </div>
             <Footer />
         </div>
