@@ -50,23 +50,29 @@ router.delete('/:registrationNumber', async (req, res) => {
 });
 
 // Route to get students by department and semester
-router.get('/students', async (req, res) => {
+router.get('/', async (req, res) => {
   const { department, semester } = req.query;
   try {
-    let query = {};
-    if (department) {
-      query.department = department;
-    }
-    if (semester) {
-      query.semester = semester;
-    }
-    const students = await Result.find(query); 
-    res.json(students);
+      let query = {};
+      if (department) {
+          query.department = department;
+      }
+      if (semester) {
+          query.semester = semester;
+      }
+      console.log('Query parameters:', query);  
+      const students = await Result.find(query);
+      console.log('Fetched students:', students);  
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.json(students);
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
 
 
 module.exports = router;
