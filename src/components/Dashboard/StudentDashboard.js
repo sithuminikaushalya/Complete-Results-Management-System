@@ -8,33 +8,39 @@ const StudentDashboard = () => {
     const [selectedDepartment, setSelectedDepartment] = useState('');
     const [registrationNumber, setRegistrationNumber] = useState('');
     const [results, setResults] = useState([]);
+    const [moduleHeaders, setModuleHeaders] = useState([]);
 
     const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'];
-
     const departments = ['Marine', 'Electrical', 'Mechanical', 'Civil', 'Computer'];
 
-    const mockResults = [
-        {
-            registrationNumber: '123456',
-            name: 'John Doe',
-            modules: ['80', '75', '85', '70', '80', '75', '85', '70', '80', '75'],
-            SGPA: '3.5',
-            GPA: '3.6'
-        },
-        {
-            registrationNumber: '789012',
-            name: 'Jane Smith',
-            modules: ['85', '90', '80', '88', '85', '90', '80', '88', '85', '90'],
-            SGPA: '3.7',
-            GPA: '3.8'
-        },
-    ];
+    useEffect(() => {
+        if (selectedSemester && selectedDepartment) {
+            fetchResults();
+        }
+    }, [selectedSemester, selectedDepartment]);
 
-    const fetchResults = () => {
-        const filteredResults = mockResults.filter(result => {
-            return result.semester === selectedSemester && result.department === selectedDepartment;
-        });
-        setResults(filteredResults);
+    const fetchResults = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:3001/result?department=${selectedDepartment}&semester=${selectedSemester}`, {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setResults(data);
+
+                if (data.length > 0) {
+                    setModuleHeaders(data[0].modules.map(module => module.name));
+                }
+            } else {
+                console.error('Failed to fetch results');
+            }
+        } catch (error) {
+            console.error('Error fetching results:', error);
+        }
     };
 
     const handleSemesterChange = (e) => {
@@ -51,40 +57,37 @@ const StudentDashboard = () => {
 
     const filterResultsByRegistrationNumber = () => {
         if (registrationNumber.trim() === '') {
-            setResults([]);
+            fetchResults();
         } else {
-            const filteredResults = mockResults.filter(result => {
+            const filteredResults = results.filter(result => {
                 return result.registrationNumber.includes(registrationNumber);
             });
             setResults(filteredResults);
         }
     };
 
-    useEffect(() => {
-        // Initialize results with mockResults when component mounts
-        fetchResults();
-    }, []); // Empty dependency array to run once on mount
-
     return (
         <div className="dashboard-container">
             <Navbar />
             <div className="dashboard-content">
-                <h2>Student Dashboard</h2>
+                <h2>Lecturer Dashboard</h2>
 
                 <div className="filter-box">
                     <div className="filter-section">
                         <label htmlFor="semester">Select Semester:</label>
                         <select id="semester" value={selectedSemester} onChange={handleSemesterChange}>
-                            {semesters.map((semester) => (
-                                <option key={semester} value={semester}>{semester}</option>
+                            <option value="">Select Semester</option>
+                            {semesters.map((semester, index) => (
+                                <option key={index} value={index + 1}>{semester}</option>
                             ))}
                         </select>
                     </div>
                     <div className="filter-section">
                         <label htmlFor="department">Select Department:</label>
                         <select id="department" value={selectedDepartment} onChange={handleDepartmentChange}>
-                            {departments.map((department) => (
-                                <option key={department} value={department}>{department}</option>
+                            <option value="">Select Department</option>
+                            {departments.map((department, index) => (
+                                <option key={index} value={department}>{department}</option>
                             ))}
                         </select>
                     </div>
@@ -107,8 +110,8 @@ const StudentDashboard = () => {
                             <tr>
                                 <th>Registration Number</th>
                                 <th>Name</th>
-                                {Array.from({ length: 10 }, (_, i) => i + 1).map((moduleNumber) => (
-                                    <th key={`Module ${moduleNumber}`}>Module {moduleNumber}</th>
+                                {moduleHeaders.map((header, index) => (
+                                    <th key={index}>{header}</th>
                                 ))}
                                 <th>SGPA</th>
                                 <th>GPA</th>
@@ -119,11 +122,11 @@ const StudentDashboard = () => {
                                 <tr key={index}>
                                     <td>{result.registrationNumber}</td>
                                     <td>{result.name}</td>
-                                    {result.modules.map((moduleScore, i) => (
-                                        <td key={`Module ${i + 1}`}>{moduleScore}</td>
+                                    {result.modules.map((module, i) => (
+                                        <td key={i}>{module.result}</td>
                                     ))}
-                                    <td>{result.SGPA}</td>
-                                    <td>{result.GPA}</td>
+                                    <td>{result.sgpa}</td>
+                                    <td>{result.gpa}</td>
                                 </tr>
                             ))}
                         </tbody>
