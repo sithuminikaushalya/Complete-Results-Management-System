@@ -9,7 +9,10 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Features
 - **Students:**
   - View personal academic results.
-  - Download results in PDF format.
+  - Search result by index
+    
+ <!-- - Download results in PDF format. -->
+    
 - **Lecturers:**
   - Add and update results for students.
   - Manage student data.
